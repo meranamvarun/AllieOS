@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#102a43"/><stop offset="1" stop-color="#0b7285"/></linearGradient></defs>
+  <rect width="1920" height="1080" fill="url(#g)"/>
+  <g transform="translate(960 490)" fill="none" stroke="#e6fcf5" stroke-width="28" stroke-linecap="round">
+    <path d="M-130 0h260M0-130v260"/><circle r="205" opacity=".16" stroke-width="10"/>
+  </g>
+  <text x="960" y="790" fill="#e6fcf5" font-family="sans-serif" font-size="88" text-anchor="middle">AllieOS</text>
+  <text x="960" y="860" fill="#99e9f2" font-family="sans-serif" font-size="30" text-anchor="middle">Open tools for care, science, and engineering</text>
+</svg>

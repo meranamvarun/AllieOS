@@ -1,0 +1,4 @@
+id = "scientist"
+name = "Scientist"
+description = "Reproducible Python/R analysis, notebooks, plotting, version control, and containers."
+packages = ["git", "gnuplot", "jupyter-notebook", "podman", "python3-pip", "python3-venv", "r-base"]

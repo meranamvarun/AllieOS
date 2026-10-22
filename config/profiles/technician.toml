@@ -1,0 +1,4 @@
+id = "technician"
+name = "Biomedical and IT technician"
+description = "Device inventory, storage health, networking, serial console, and recovery utilities."
+packages = ["gparted", "hardinfo", "minicom", "nvme-cli", "smartmontools", "testdisk", "usbutils", "wireshark"]

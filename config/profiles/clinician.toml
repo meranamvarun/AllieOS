@@ -1,0 +1,4 @@
+id = "clinician"
+name = "Clinician"
+description = "DICOM review, office productivity, secure communication, and remote-care basics."
+packages = ["dcmtk", "dicomscope", "libreoffice", "remmina"]

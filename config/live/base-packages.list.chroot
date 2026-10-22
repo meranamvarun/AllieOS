@@ -1,0 +1,14 @@
+apparmor
+apparmor-utils
+ca-certificates
+curl
+fonts-dejavu
+fonts-noto
+gnome-disk-utility
+libreoffice
+network-manager
+openssh-client
+python3
+sudo
+ubuntu-desktop-minimal
+unattended-upgrades

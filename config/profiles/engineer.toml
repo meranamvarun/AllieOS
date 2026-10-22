@@ -1,0 +1,4 @@
+id = "engineer"
+name = "Engineer"
+description = "Software, electronics, automation, CAD, and hardware integration essentials."
+packages = ["build-essential", "cmake", "freecad", "git", "kicad", "minicom", "podman", "python3-venv"]

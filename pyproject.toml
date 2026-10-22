@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "allieos"
+version = "0.1.0"
+description = "Role configuration and image tooling for AllieOS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+authors = [{ name = "AllieOS contributors" }]
+dependencies = []
+
+[project.scripts]
+alliectl = "allieos.cli:main"
+
+[tool.setuptools]
+packages = ["allieos"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

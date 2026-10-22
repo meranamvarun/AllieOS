@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: CLI smoke test
+        run: python -m allieos.cli apply pathology-lab scientist --dry-run
+      - name: Validate Ubuntu package names
+        run: |
+          sudo add-apt-repository --yes universe
+          sudo add-apt-repository --yes multiverse
+          sudo apt-get update
+          bash ./scripts/validate-packages.sh

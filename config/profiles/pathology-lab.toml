@@ -1,0 +1,4 @@
+id = "pathology-lab"
+name = "Pathology and laboratory"
+description = "Whole-slide image, DICOM, microscopy, barcode, and laboratory data utilities."
+packages = ["dcmtk", "gimagereader", "imagemagick", "libopenjp2-tools", "openslide-tools", "python3-openslide", "zbar-tools"]

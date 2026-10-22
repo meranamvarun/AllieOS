@@ -1,0 +1,4 @@
+id = "medical-student"
+name = "Medical student"
+description = "Study, citation, document, statistics, and anatomy-friendly media tools."
+packages = ["anki", "calibre", "libreoffice", "pandoc", "r-base", "vlc"]
