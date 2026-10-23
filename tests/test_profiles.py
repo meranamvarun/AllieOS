@@ -2,7 +2,14 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from allieos.profiles import Profile, ProfileError, discover_profiles, load_profile, resolve_packages
+from allieos.profiles import (
+    Profile,
+    ProfileError,
+    discover_profiles,
+    load_profile,
+    resolve_components,
+    resolve_packages,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +27,15 @@ class ProfileTests(unittest.TestCase):
         first = Profile("a", "A", "A profile", ("git", "python3", "git"))
         second = Profile("b", "B", "B profile", ("python3", "cmake"))
         self.assertEqual(resolve_packages([first, second]), ["cmake", "git", "python3"])
+
+    def test_components_are_sorted_and_deduplicated(self):
+        first = Profile("a", "A", "A profile", ("git",), ("micro-manager",))
+        second = Profile("b", "B", "B profile", ("git",), ("micro-manager", "other"))
+        self.assertEqual(resolve_components([first, second]), ["micro-manager", "other"])
+
+    def test_pathology_profile_includes_micro_manager(self):
+        profile = load_profile(ROOT / "config" / "profiles" / "pathology-lab.toml")
+        self.assertIn("micro-manager", profile.components)
 
     def test_filename_and_id_must_match(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -20,7 +20,7 @@ The two technician audiences in the initial brief are represented by `pathology-
 ## Principles
 
 1. Track Ubuntu LTS and upstream security updates; do not fork the kernel without a demonstrated need.
-2. Keep the base small and move specialist tools into opt-in profiles.
+2. Ship the pathology workstation tools in the ISO while retaining profiles as auditable workflow groupings.
 3. Prefer Ubuntu packages; isolate third-party software and record provenance when it is later introduced.
 4. Default to encryption, least privilege, automatic security updates, and no inbound services.
 5. Treat patient data as sensitive and keep it out of telemetry, logs, examples, tests, and bug reports.
@@ -49,6 +49,7 @@ Exit: clean VM installs boot reliably, encrypted installation works, and no crit
 ### M2 — Pathology pilot
 
 - Validate whole-slide image formats and representative scanner exports.
+- Validate the pinned Micro-Manager build and representative microscope/camera configurations.
 - Package QuPath/Fiji or alternatives with pinned provenance and license review.
 - Add color-management, calibrated-display guidance, anonymized sample data, and DICOM de-identification workflows.
 - Pilot with at least one representative from each primary role.

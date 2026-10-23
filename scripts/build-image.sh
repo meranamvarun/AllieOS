@@ -33,13 +33,19 @@ lb config noauto \
   --bootappend-live "boot=live components username=allie hostname=allieos"
 
 mkdir -p config/package-lists config/includes.chroot/opt/allieos \
-  config/includes.chroot/usr/local/bin config/includes.chroot/usr/share/allieos/profiles \
+  config/includes.chroot/usr/local/bin config/includes.chroot/usr/libexec/allieos \
+  config/includes.chroot/usr/share/allieos/profiles \
   config/includes.chroot/usr/share/backgrounds/allieos config/includes.chroot/etc/apt/apt.conf.d
 cp "${ROOT_DIR}/config/live/base-packages.list.chroot" config/package-lists/allieos.list.chroot
+(cd "${ROOT_DIR}" && python3 -m allieos.cli \
+  --profile-dir "${ROOT_DIR}/config/profiles" packages) \
+  > config/package-lists/allieos-profiles.list.chroot
 cp "${ROOT_DIR}/config/live/99-allieos-security" config/includes.chroot/etc/apt/apt.conf.d/
 cp "${ROOT_DIR}/branding/allieos-wallpaper.svg" config/includes.chroot/usr/share/backgrounds/allieos/
 rsync -a "${ROOT_DIR}/allieos/" config/includes.chroot/opt/allieos/allieos/
 cp "${ROOT_DIR}/config/profiles/"*.toml config/includes.chroot/usr/share/allieos/profiles/
+install -m 0755 "${ROOT_DIR}/scripts/install-micromanager.sh" \
+  config/includes.chroot/usr/libexec/allieos/install-micromanager.sh
 
 cat > config/includes.chroot/usr/local/bin/alliectl <<'WRAPPER'
 #!/usr/bin/env python3
@@ -58,6 +64,15 @@ printf '\nVARIANT="AllieOS"\nVARIANT_ID=allieos\n' >> /etc/os-release
 update-alternatives --install /usr/share/backgrounds/warty-final-ubuntu.png desktop-background /usr/share/backgrounds/allieos/allieos-wallpaper.svg 50 || true
 HOOK
 chmod 0755 config/hooks/live/0100-allieos-branding.hook.chroot
+
+cat > config/hooks/live/0200-allieos-micromanager.hook.chroot <<'HOOK'
+#!/bin/sh
+set -eu
+/usr/libexec/allieos/install-micromanager.sh
+test -x /opt/micro-manager/2.0.3-bba80619603c/bin/micromanager
+test -L /usr/local/bin/micromanager
+HOOK
+chmod 0755 config/hooks/live/0200-allieos-micromanager.hook.chroot
 
 lb build
 

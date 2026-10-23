@@ -22,9 +22,17 @@ class ReleaseTests(unittest.TestCase):
             for profile in discover_profiles(ROOT / "config" / "profiles").values()
             for package in profile.packages
         }
-        self.assertEqual({item["name"] for item in spdx["packages"]}, expected)
-        self.assertEqual({item["name"] for item in cyclonedx["components"]}, expected)
+        self.assertEqual({item["name"] for item in spdx["packages"]}, expected | {"Micro-Manager"})
+        self.assertEqual({item["name"] for item in cyclonedx["components"]}, expected | {"Micro-Manager"})
         self.assertEqual(spdx["creationInfo"]["created"], "1970-01-01T00:00:00Z")
+
+    def test_micro_manager_revision_is_recorded(self):
+        spdx, cyclonedx = build_sboms(self.profiles, source_date_epoch=0)
+        spdx_component = next(item for item in spdx["packages"] if item["name"] == "Micro-Manager")
+        cdx_component = next(item for item in cyclonedx["components"] if item["name"] == "Micro-Manager")
+        revision = "bba80619603cf8974a0666c06c60ec68111d14b2"
+        self.assertIn(revision, spdx_component["externalRefs"][0]["referenceLocator"])
+        self.assertIn(revision, cdx_component["purl"])
 
     def test_shared_package_records_profile_membership(self):
         profiles = [

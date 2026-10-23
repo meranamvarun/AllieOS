@@ -1,4 +1,5 @@
 id = "pathology-lab"
 name = "Pathology and laboratory"
-description = "Whole-slide image, DICOM, microscopy, barcode, and laboratory data utilities."
-packages = ["dcmtk", "gimagereader", "imagemagick", "libopenjp2-tools", "openslide-tools", "python3-openslide", "zbar-tools"]
+description = "Whole-slide image, DICOM, Micro-Manager microscopy, barcode, and laboratory data utilities."
+packages = ["ant", "autoconf", "autoconf-archive", "automake", "build-essential", "ca-certificates", "curl", "dcmtk", "gimagereader", "git", "imagemagick", "libboost-all-dev", "libopenjp2-tools", "libpcre3-dev", "libtool", "openjdk-11-jdk", "openslide-tools", "pkg-config", "python3-openslide", "subversion", "zbar-tools"]
+components = ["micro-manager"]

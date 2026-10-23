@@ -17,6 +17,7 @@ alliectl = "allieos.cli:main"
 
 [tool.setuptools]
 packages = ["allieos"]
+script-files = ["scripts/install-micromanager.sh"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,12 +1,14 @@
 # AllieOS
 
-AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and laboratory staff, medical students, scientists, engineers, and biomedical/IT technicians. It combines a conservative Ubuntu 24.04 LTS base with optional, composable professional profiles.
+AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and laboratory staff, medical students, scientists, engineers, and biomedical/IT technicians. It combines a conservative Ubuntu 24.04 LTS base with a preinstalled pathology and laboratory toolkit organized through composable professional profiles.
 
 > **Clinical safety:** AllieOS is not a medical device and is not validated for diagnosis. Applications must be independently validated before clinical use. Never use real patient data in development or demonstrations.
 
 ## What works today
 
 - Six validated role manifests with deterministic package resolution.
+- All packages from all six profiles preinstalled in the live ISO.
+- Micro-Manager 2.0.3 preinstalled in the live ISO from pinned upstream source.
 - `alliectl` to list, inspect, and apply multiple roles.
 - An Ubuntu `live-build` recipe for an amd64 live ISO.
 - Automatic security-update defaults and AppArmor in the base image.
@@ -32,9 +34,11 @@ python3 -m pip install .
 sudo alliectl apply pathology-lab scientist
 ```
 
+The live ISO contains every profile package and Micro-Manager preinstalled. The profiles remain useful for inspecting the intended tool groupings and for applying the same setup to a regular Ubuntu installation. On regular Ubuntu, the pathology/lab profile builds Micro-Manager from the same pinned upstream source because no Linux binary is published. Microscope and camera drivers remain hardware-specific and must be installed and validated separately. See [Micro-Manager provenance and lifecycle](docs/third-party/micro-manager.md).
+
 ## Build the live image
 
-Use a disposable Ubuntu 24.04 amd64 VM with at least 30 GB free space. Building downloads several gigabytes and runs chroot operations.
+Use a disposable Ubuntu 24.04 amd64 VM with at least 60 GB free space. Building downloads every profile package, compiles Micro-Manager inside the image, and runs chroot operations.
 
 ```bash
 sudo apt update

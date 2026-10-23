@@ -20,6 +20,16 @@ class ReleaseError(ValueError):
     """Raised when release metadata cannot be generated safely."""
 
 
+EXTERNAL_COMPONENTS = {
+    "micro-manager": {
+        "name": "Micro-Manager",
+        "version": "2.0.3",
+        "revision": "bba80619603cf8974a0666c06c60ec68111d14b2",
+        "source": "https://github.com/micro-manager/micro-manager",
+    }
+}
+
+
 def _timestamp(source_date_epoch: int | None = None) -> str:
     if source_date_epoch is None:
         value = os.environ.get("SOURCE_DATE_EPOCH")
@@ -41,9 +51,22 @@ def _inventory(profiles: Iterable[Profile]) -> dict[str, list[str]]:
 
 def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = None) -> tuple[dict, dict]:
     """Build SPDX 2.3 and CycloneDX 1.5 documents from role manifests."""
+    profiles = list(profiles)
     inventory = _inventory(profiles)
+    component_membership: dict[str, list[str]] = defaultdict(list)
+    for profile in profiles:
+        for component in profile.components:
+            component_membership[component].append(profile.id)
     created = _timestamp(source_date_epoch)
-    fingerprint = json.dumps(inventory, separators=(",", ":"), sort_keys=True)
+    fingerprint = json.dumps(
+        {
+            "packages": inventory,
+            "components": component_membership,
+            "componentMetadata": EXTERNAL_COMPONENTS,
+        },
+        separators=(",", ":"),
+        sort_keys=True,
+    )
     document_uuid = uuid.uuid5(uuid.NAMESPACE_URL, f"allieos:{__version__}:{fingerprint}")
 
     spdx_packages = []
@@ -90,11 +113,63 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
             }
         )
 
+    for component_id, role_ids in sorted(component_membership.items()):
+        try:
+            component = EXTERNAL_COMPONENTS[component_id]
+        except KeyError as error:
+            raise ReleaseError(f"unknown external component: {component_id}") from error
+        name = component["name"]
+        version = component["version"]
+        revision = component["revision"]
+        source = component["source"]
+        spdx_id = _package_id(component_id)
+        purl = f"pkg:github/micro-manager/micro-manager@{revision}"
+        spdx_packages.append(
+            {
+                "SPDXID": spdx_id,
+                "name": name,
+                "versionInfo": version,
+                "downloadLocation": source,
+                "filesAnalyzed": False,
+                "licenseConcluded": "NOASSERTION",
+                "licenseDeclared": "NOASSERTION",
+                "externalRefs": [
+                    {
+                        "referenceCategory": "PACKAGE-MANAGER",
+                        "referenceType": "purl",
+                        "referenceLocator": purl,
+                    }
+                ],
+                "annotations": [
+                    {
+                        "annotationDate": created,
+                        "annotationType": "OTHER",
+                        "annotator": "Tool: alliectl",
+                        "comment": f"External component included by profiles: {', '.join(sorted(role_ids))}",
+                    }
+                ],
+            }
+        )
+        relationships.append(
+            {"spdxElementId": "SPDXRef-DOCUMENT", "relationshipType": "DESCRIBES", "relatedSpdxElement": spdx_id}
+        )
+        cyclonedx_components.append(
+            {
+                "type": "application",
+                "bom-ref": purl,
+                "name": name,
+                "version": version,
+                "purl": purl,
+                "externalReferences": [{"type": "vcs", "url": f"{source}@{revision}"}],
+                "properties": [{"name": "allieos:profiles", "value": ",".join(sorted(role_ids))}],
+            }
+        )
+
     spdx = {
         "spdxVersion": "SPDX-2.3",
         "dataLicense": "CC0-1.0",
         "SPDXID": "SPDXRef-DOCUMENT",
-        "name": f"AllieOS-{__version__}-profile-packages",
+        "name": f"AllieOS-{__version__}-profile-components",
         "documentNamespace": f"https://allieos.invalid/spdx/{document_uuid}",
         "creationInfo": {"created": created, "creators": [f"Tool: alliectl-{__version__}"]},
         "packages": spdx_packages,

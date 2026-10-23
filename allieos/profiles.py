@@ -17,6 +17,7 @@ class Profile:
     name: str
     description: str
     packages: tuple[str, ...]
+    components: tuple[str, ...] = ()
 
 
 def default_profile_dir() -> Path:
@@ -33,6 +34,7 @@ def load_profile(path: Path) -> Profile:
     name = data.get("name")
     description = data.get("description")
     packages = data.get("packages", [])
+    components = data.get("components", [])
     if profile_id != path.stem:
         raise ProfileError(f"{path}: id must match filename")
     if not isinstance(name, str) or not name.strip():
@@ -45,7 +47,13 @@ def load_profile(path: Path) -> Profile:
         raise ProfileError(f"{path}: package names must be non-empty strings")
     if len(packages) != len(set(packages)):
         raise ProfileError(f"{path}: packages must not contain duplicates")
-    return Profile(profile_id, name.strip(), description.strip(), tuple(packages))
+    if not isinstance(components, list):
+        raise ProfileError(f"{path}: components must be a list")
+    if any(not isinstance(item, str) or not item.strip() for item in components):
+        raise ProfileError(f"{path}: component names must be non-empty strings")
+    if len(components) != len(set(components)):
+        raise ProfileError(f"{path}: components must not contain duplicates")
+    return Profile(profile_id, name.strip(), description.strip(), tuple(packages), tuple(components))
 
 
 def discover_profiles(profile_dir: Path) -> dict[str, Profile]:
@@ -60,3 +68,8 @@ def discover_profiles(profile_dir: Path) -> dict[str, Profile]:
 def resolve_packages(selected: list[Profile]) -> list[str]:
     """Return deterministic de-duplicated package names."""
     return sorted({package for profile in selected for package in profile.packages})
+
+
+def resolve_components(selected: list[Profile]) -> list[str]:
+    """Return deterministic de-duplicated external component identifiers."""
+    return sorted({component for profile in selected for component in profile.components})
