@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=AllieOS Histology
+Description=An H&E-inspired microscopy boot animation for AllieOS
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/allieos
+ScriptFile=/usr/share/plymouth/themes/allieos/allieos.script
+UseFirmwareBackground=false

@@ -35,13 +35,16 @@ lb config noauto \
 mkdir -p config/package-lists config/includes.chroot/opt/allieos \
   config/includes.chroot/usr/local/bin config/includes.chroot/usr/libexec/allieos \
   config/includes.chroot/usr/share/allieos/profiles \
-  config/includes.chroot/usr/share/backgrounds/allieos config/includes.chroot/etc/apt/apt.conf.d
+  config/includes.chroot/usr/share/backgrounds/allieos \
+  config/includes.chroot/usr/share/plymouth/themes/allieos \
+  config/includes.chroot/etc/apt/apt.conf.d
 cp "${ROOT_DIR}/config/live/base-packages.list.chroot" config/package-lists/allieos.list.chroot
 (cd "${ROOT_DIR}" && python3 -m allieos.cli \
   --profile-dir "${ROOT_DIR}/config/profiles" packages) \
   > config/package-lists/allieos-profiles.list.chroot
 cp "${ROOT_DIR}/config/live/99-allieos-security" config/includes.chroot/etc/apt/apt.conf.d/
 cp "${ROOT_DIR}/branding/allieos-wallpaper.svg" config/includes.chroot/usr/share/backgrounds/allieos/
+cp "${ROOT_DIR}/branding/plymouth/allieos/"* config/includes.chroot/usr/share/plymouth/themes/allieos/
 rsync -a "${ROOT_DIR}/allieos/" config/includes.chroot/opt/allieos/allieos/
 cp "${ROOT_DIR}/config/profiles/"*.toml config/includes.chroot/usr/share/allieos/profiles/
 install -m 0755 "${ROOT_DIR}/scripts/install-micromanager.sh" \
@@ -62,6 +65,14 @@ cat > config/hooks/live/0100-allieos-branding.hook.chroot <<'HOOK'
 set -eu
 printf '\nVARIANT="AllieOS"\nVARIANT_ID=allieos\n' >> /etc/os-release
 update-alternatives --install /usr/share/backgrounds/warty-final-ubuntu.png desktop-background /usr/share/backgrounds/allieos/allieos-wallpaper.svg 50 || true
+
+THEME_DIR=/usr/share/plymouth/themes/allieos
+for asset in field cell nucleus focus-ring scan-line; do
+  rsvg-convert "${THEME_DIR}/${asset}.svg" -o "${THEME_DIR}/${asset}.png"
+done
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth "${THEME_DIR}/allieos.plymouth" 200
+update-alternatives --set default.plymouth "${THEME_DIR}/allieos.plymouth"
+update-initramfs -u
 HOOK
 chmod 0755 config/hooks/live/0100-allieos-branding.hook.chroot
 

@@ -1,0 +1,147 @@
+# AllieOS Plymouth theme: an abstract H&E-stained microscopy field.
+
+Window.SetBackgroundTopColor(0.027, 0.043, 0.075);
+Window.SetBackgroundBottomColor(0.071, 0.105, 0.145);
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+field_size = screen_height * 0.58;
+if (field_size > screen_width * 0.76)
+  field_size = screen_width * 0.76;
+field_x = Window.GetX() + (screen_width - field_size) / 2;
+field_y = Window.GetY() + screen_height * 0.10;
+
+field_image = Image("field.png").Scale(field_size, field_size);
+field_sprite = Sprite(field_image);
+field_sprite.SetX(field_x);
+field_sprite.SetY(field_y);
+field_sprite.SetZ(1);
+
+cell_image = Image("cell.png");
+nucleus_image = Image("nucleus.png");
+
+# Position and scale a small tissue section inside the microscope field.
+cell_x[0] = 0.11; cell_y[0] = 0.19; cell_s[0] = 0.17;
+cell_x[1] = 0.33; cell_y[1] = 0.12; cell_s[1] = 0.14;
+cell_x[2] = 0.56; cell_y[2] = 0.20; cell_s[2] = 0.18;
+cell_x[3] = 0.70; cell_y[3] = 0.38; cell_s[3] = 0.15;
+cell_x[4] = 0.49; cell_y[4] = 0.47; cell_s[4] = 0.16;
+cell_x[5] = 0.22; cell_y[5] = 0.45; cell_s[5] = 0.19;
+cell_x[6] = 0.13; cell_y[6] = 0.68; cell_s[6] = 0.14;
+cell_x[7] = 0.39; cell_y[7] = 0.70; cell_s[7] = 0.17;
+cell_x[8] = 0.65; cell_y[8] = 0.66; cell_s[8] = 0.16;
+
+for (i = 0; i < 9; i++) {
+  cell_width = field_size * cell_s[i];
+  cell_height = cell_width * 0.83;
+  cells[i] = Sprite(cell_image.Scale(cell_width, cell_height));
+  cells[i].SetX(field_x + field_size * cell_x[i]);
+  cells[i].SetY(field_y + field_size * cell_y[i]);
+  cells[i].SetZ(2);
+
+  nucleus_width = cell_width * 0.43;
+  nucleus_height = nucleus_width * 0.80;
+  nuclei[i] = Sprite(nucleus_image.Scale(nucleus_width, nucleus_height));
+  nuclei[i].SetX(field_x + field_size * cell_x[i] + cell_width * 0.31);
+  nuclei[i].SetY(field_y + field_size * cell_y[i] + cell_height * 0.27);
+  nuclei[i].SetZ(3);
+}
+
+focus_size = field_size * 0.29;
+focus_sprite = Sprite(Image("focus-ring.png").Scale(focus_size, focus_size));
+focus_sprite.SetX(field_x + (field_size - focus_size) / 2);
+focus_sprite.SetY(field_y + (field_size - focus_size) / 2);
+focus_sprite.SetZ(5);
+
+scan_width = field_size * 0.76;
+scan_sprite = Sprite(Image("scan-line.png").Scale(scan_width, 4));
+scan_sprite.SetX(field_x + field_size * 0.12);
+scan_sprite.SetZ(4);
+
+title_raw = Image.Text("AllieOS", 0.91, 0.97, 0.96);
+title_width = screen_height * 0.16;
+title_height = title_raw.GetHeight() * title_width / title_raw.GetWidth();
+title_image = title_raw.Scale(title_width, title_height);
+title_sprite = Sprite(title_image);
+title_sprite.SetX(Window.GetX() + (screen_width - title_image.GetWidth()) / 2);
+title_sprite.SetY(Window.GetY() + screen_height * 0.73);
+title_sprite.SetZ(10);
+
+subtitle_raw = Image.Text("PATHOLOGY WORKSTATION", 0.51, 0.82, 0.80);
+subtitle_width = screen_height * 0.23;
+subtitle_height = subtitle_raw.GetHeight() * subtitle_width / subtitle_raw.GetWidth();
+subtitle_image = subtitle_raw.Scale(subtitle_width, subtitle_height);
+subtitle_sprite = Sprite(subtitle_image);
+subtitle_sprite.SetX(Window.GetX() + (screen_width - subtitle_image.GetWidth()) / 2);
+subtitle_sprite.SetY(Window.GetY() + screen_height * 0.79);
+subtitle_sprite.SetZ(10);
+
+status_image = Image.Text("Preparing your workspace", 0.68, 0.73, 0.78);
+status_sprite = Sprite(status_image);
+status_sprite.SetX(Window.GetX() + (screen_width - status_image.GetWidth()) / 2);
+status_sprite.SetY(Window.GetY() + screen_height * 0.87);
+status_sprite.SetZ(10);
+
+progress_image = nucleus_image.Scale(11, 9);
+for (i = 0; i < 5; i++) {
+  progress_cells[i] = Sprite(progress_image);
+  progress_cells[i].SetX(Window.GetX() + screen_width / 2 - 39 + i * 17);
+  progress_cells[i].SetY(Window.GetY() + screen_height * 0.84);
+  progress_cells[i].SetZ(10);
+  progress_cells[i].SetOpacity(0.18);
+}
+
+fun refresh_callback() {
+  time = Plymouth.GetTime();
+  progress = Plymouth.GetBootProgress();
+
+  scan_position = (Math.Sin(time * 1.35) + 1) / 2;
+  scan_sprite.SetY(field_y + field_size * (0.18 + scan_position * 0.64));
+  scan_sprite.SetOpacity(0.25 + 0.30 * Math.Sin(time * 1.35) * Math.Sin(time * 1.35));
+  focus_sprite.SetOpacity(0.38 + 0.18 * Math.Sin(time * 1.8));
+
+  for (i = 0; i < 9; i++) {
+    drift_x = Math.Sin(time * (0.34 + i * 0.015) + i) * field_size * 0.003;
+    drift_y = Math.Sin(time * (0.29 + i * 0.012) + i * 1.7) * field_size * 0.003;
+    cell_width = field_size * cell_s[i];
+    cell_height = cell_width * 0.83;
+    cells[i].SetX(field_x + field_size * cell_x[i] + drift_x);
+    cells[i].SetY(field_y + field_size * cell_y[i] + drift_y);
+    cells[i].SetOpacity(0.61 + 0.13 * Math.Sin(time * 0.75 + i));
+    nuclei[i].SetX(field_x + field_size * cell_x[i] + cell_width * 0.31 + drift_x * 1.4);
+    nuclei[i].SetY(field_y + field_size * cell_y[i] + cell_height * 0.27 + drift_y * 1.4);
+    nuclei[i].SetOpacity(0.76 + 0.18 * Math.Sin(time * 0.92 + i * 0.8));
+  }
+
+  for (i = 0; i < 5; i++) {
+    if (progress * 5 > i)
+      progress_cells[i].SetOpacity(0.88);
+    else
+      progress_cells[i].SetOpacity(0.18);
+  }
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun display_message_callback(message) {
+  status_image = Image.Text(message, 0.68, 0.73, 0.78);
+  status_sprite.SetImage(status_image);
+  status_sprite.SetX(Window.GetX() + (screen_width - status_image.GetWidth()) / 2);
+}
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+
+fun display_password_callback(prompt, bullets) {
+  password_text = prompt + "  ";
+  for (i = 0; i < bullets; i++)
+    password_text += "*";
+  status_image = Image.Text(password_text, 0.91, 0.97, 0.96);
+  status_sprite.SetImage(status_image);
+  status_sprite.SetX(Window.GetX() + (screen_width - status_image.GetWidth()) / 2);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+  status_image = Image.Text("Preparing your workspace", 0.68, 0.73, 0.78);
+  status_sprite.SetImage(status_image);
+  status_sprite.SetX(Window.GetX() + (screen_width - status_image.GetWidth()) / 2);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);

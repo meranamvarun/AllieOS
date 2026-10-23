@@ -9,6 +9,7 @@ AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and labor
 - Six validated role manifests with deterministic package resolution.
 - All packages from all six profiles preinstalled in the live ISO.
 - Micro-Manager 2.0.3 preinstalled in the live ISO from pinned upstream source.
+- An H&E-inspired animated microscopy boot splash.
 - `alliectl` to list, inspect, and apply multiple roles.
 - An Ubuntu `live-build` recipe for an amd64 live ISO.
 - Automatic security-update defaults and AppArmor in the base image.

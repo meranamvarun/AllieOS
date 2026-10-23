@@ -6,8 +6,10 @@ fonts-dejavu
 fonts-noto
 gnome-disk-utility
 libreoffice
+librsvg2-bin
 network-manager
 openssh-client
+plymouth-themes
 python3
 sudo
 ubuntu-desktop-minimal
