@@ -60,4 +60,17 @@ HOOK
 chmod 0755 config/hooks/live/0100-allieos-branding.hook.chroot
 
 lb build
-echo "Image build complete. Artifacts are in ${BUILD_DIR}."
+
+mapfile -t IMAGE_ARTIFACTS < <(find "${BUILD_DIR}" -maxdepth 1 -type f \( -name '*.iso' -o -name '*.img' \) -print | sort)
+if [[ "${#IMAGE_ARTIFACTS[@]}" -eq 0 ]]; then
+  echo "Image build completed but no ISO or IMG artifact was found." >&2
+  exit 2
+fi
+
+METADATA_ARGS=(--profile-dir "${ROOT_DIR}/config/profiles" release-metadata --output-dir "${ROOT_DIR}/build/release")
+for artifact in "${IMAGE_ARTIFACTS[@]}"; do
+  METADATA_ARGS+=(--artifact "${artifact}")
+done
+(cd "${ROOT_DIR}" && python3 -m allieos.cli "${METADATA_ARGS[@]}")
+
+echo "Image build complete. Images are in ${BUILD_DIR}; release metadata is in ${ROOT_DIR}/build/release."

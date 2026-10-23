@@ -1,6 +1,7 @@
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
+import tempfile
 import unittest
 
 from allieos.cli import main
@@ -32,6 +33,15 @@ class CliTests(unittest.TestCase):
         code, _, error = self.run_cli("show", "unknown")
         self.assertEqual(code, 2)
         self.assertIn("unknown profile", error)
+
+    def test_release_metadata_command(self):
+        with tempfile.TemporaryDirectory() as directory:
+            code, output, error = self.run_cli(
+                "release-metadata", "--output-dir", directory, "--source-date-epoch", "0"
+            )
+            self.assertEqual((code, error), (0, ""))
+            self.assertIn("allieos.spdx.json", output)
+            self.assertTrue((Path(directory) / "SHA256SUMS").is_file())
 
 
 if __name__ == "__main__":

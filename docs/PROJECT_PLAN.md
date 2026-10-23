@@ -72,7 +72,7 @@ Exit: staged updates, disaster recovery, 30-day pilot, and administrator runbook
 
 1. Build M0 on Ubuntu and record the first QEMU boot result.
 2. Remove or replace packages that fail Noble availability validation.
-3. Add ISO checksums and CycloneDX/SPDX SBOM generation.
+3. Enrich the generated manifest SBOMs with versions from the completed image and sign the checksums.
 4. Decide between a Subiquity layer and an OEM/autoinstall deployment path for M1.
 5. Recruit workflow owners and gather representative, de-identified file formats and device requirements.
 6. Define release signing, governance, trademark, and security-contact ownership.

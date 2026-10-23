@@ -10,6 +10,7 @@ AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and labor
 - `alliectl` to list, inspect, and apply multiple roles.
 - An Ubuntu `live-build` recipe for an amd64 live ISO.
 - Automatic security-update defaults and AppArmor in the base image.
+- SPDX and CycloneDX package-manifest SBOMs with SHA-256 release checksums.
 - Unit tests, package-availability validation, and CI.
 
 This is an early developer release, not yet a production clinical workstation. The current ISO is a **live evaluation image**, not a supported installer.
@@ -42,6 +43,16 @@ sudo bash ./scripts/build-image.sh
 ```
 
 The image is written below `build/live/`. Boot it in a VM before trying hardware. Secure Boot signing and a graphical installer are planned but not implemented.
+The build also writes `build/release/allieos.spdx.json`, `allieos.cdx.json`, and `SHA256SUMS`.
+
+To generate the metadata separately, optionally including an existing image:
+
+```bash
+SOURCE_DATE_EPOCH=0 python3 -m allieos.cli release-metadata \
+  --output-dir build/release --artifact build/live/allieos.iso
+```
+
+The SBOMs describe packages requested by AllieOS role manifests and the profiles that requested them. They do not replace an installed-package inventory or vulnerability scan of the completed image.
 
 ## Develop
 

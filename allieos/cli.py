@@ -13,6 +13,7 @@ from typing import Sequence
 
 from . import __version__
 from .profiles import ProfileError, default_profile_dir, discover_profiles, resolve_packages
+from .release import ReleaseError, write_release_metadata
 
 
 STATE_FILE = Path("/var/lib/allieos/state.json")
@@ -30,6 +31,10 @@ def build_parser() -> argparse.ArgumentParser:
     apply.add_argument("profiles", nargs="+")
     apply.add_argument("--dry-run", action="store_true", help="print the apt command without changing the system")
     subparsers.add_parser("status", help="show previously applied profiles")
+    release = subparsers.add_parser("release-metadata", help="write SBOMs and SHA-256 checksums")
+    release.add_argument("--output-dir", type=Path, default=Path("release"))
+    release.add_argument("--artifact", action="append", type=Path, default=[], help="artifact to include in SHA256SUMS")
+    release.add_argument("--source-date-epoch", type=int, help="fixed timestamp for reproducible output")
     return parser
 
 
@@ -80,12 +85,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "apply":
             selected = _select(args.profiles, profiles)
             return _apply(args.profiles, resolve_packages(selected), args.dry_run)
+        if args.command == "release-metadata":
+            paths = write_release_metadata(
+                profiles.values(), args.output_dir, args.artifact, args.source_date_epoch
+            )
+            for path in paths:
+                print(path)
+            return 0
         if STATE_FILE.exists():
             print(STATE_FILE.read_text(encoding="utf-8"), end="")
         else:
             print("No role profiles have been applied with alliectl.")
         return 0
-    except (OSError, ProfileError, subprocess.CalledProcessError) as error:
+    except (OSError, ProfileError, ReleaseError, subprocess.CalledProcessError, ValueError) as error:
         print(f"alliectl: {error}", file=sys.stderr)
         return 2
 
