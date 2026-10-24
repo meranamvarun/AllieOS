@@ -15,6 +15,9 @@ AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and labor
 - Automatic security-update defaults and AppArmor in the base image.
 - SPDX and CycloneDX package-manifest SBOMs with SHA-256 release checksums.
 - Unit tests, package-availability validation, and CI.
+- A bundled evaluation pathology system linking patients, accessions, specimens,
+  blocks, whole-slide images, report versions, and audit events, with Orthanc,
+  DICOMweb, GDCM, and WSI support included in the ISO.
 
 This is an early developer release, not yet a production clinical workstation. The current ISO is a **live evaluation image**, not a supported installer.
 
@@ -68,6 +71,22 @@ bash ./scripts/validate-packages.sh   # on Ubuntu after apt update
 ```
 
 See [the product and delivery plan](docs/PROJECT_PLAN.md), [architecture decisions](docs/ARCHITECTURE.md), and [security policy](SECURITY.md).
+
+### Use the bundled pathology workflow
+
+On the ISO, open **AllieOS Pathology** from the application menu. The workflow
+service and bundled Orthanc archive stay on loopback by default. Use synthetic
+data only until an institution validates its deployment.
+
+During source development, run:
+
+```bash
+python3 -m allieos.pathology.server --database ./evaluation-pathology.db
+```
+
+See [the complete workflow, API, image integration, license matrix, and
+production gaps](docs/PATHOLOGY_SYSTEM.md) and the [bundled archive provenance,
+security boundary, update ownership, and removal procedure](docs/third-party/pathology-platform.md).
 
 ## License
 

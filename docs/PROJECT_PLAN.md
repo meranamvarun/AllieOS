@@ -51,6 +51,7 @@ Exit: clean VM installs boot reliably, encrypted installation works, and no crit
 - Validate whole-slide image formats and representative scanner exports.
 - Validate the pinned Micro-Manager build and representative microscope/camera configurations.
 - Package QuPath/Fiji or alternatives with pinned provenance and license review.
+- Evaluate the bundled pathology workflow and local Orthanc/DICOMweb/WSI stack with synthetic data; validate its license, security, and upgrade lifecycle.
 - Add color-management, calibrated-display guidance, anonymized sample data, and DICOM de-identification workflows.
 - Pilot with at least one representative from each primary role.
 
@@ -90,5 +91,6 @@ Exit: staged updates, disaster recovery, 30-day pilot, and administrator runbook
 
 - A new kernel, package manager, or desktop environment.
 - Diagnostic claims, medical-device certification, or replacement of institutional validation.
-- Hosting an EHR/LIS or central patient database by default.
+- Enabling a remotely accessible multi-user EHR/LIS or central patient database by default.
+- Treating the bundled evaluation pathology service as a validated clinical LIS.
 - Silent telemetry, cloud accounts, or preconfigured remote access.

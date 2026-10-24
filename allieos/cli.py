@@ -24,7 +24,10 @@ from .release import ReleaseError, write_release_metadata
 
 
 STATE_FILE = Path("/var/lib/allieos/state.json")
-COMPONENT_INSTALLERS = {"micro-manager": "install-micromanager.sh"}
+COMPONENT_INSTALLERS = {
+    "micro-manager": "install-micromanager.sh",
+    "pathology-platform": "install-pathology-platform.sh",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -26,6 +26,14 @@ EXTERNAL_COMPONENTS = {
         "version": "2.0.3",
         "revision": "bba80619603cf8974a0666c06c60ec68111d14b2",
         "source": "https://github.com/micro-manager/micro-manager",
+        "purl": "pkg:github/micro-manager/micro-manager@bba80619603cf8974a0666c06c60ec68111d14b2",
+    },
+    "pathology-platform": {
+        "name": "AllieOS Pathology Platform Integration",
+        "version": __version__,
+        "revision": __version__,
+        "source": "NOASSERTION",
+        "purl": f"pkg:generic/allieos-pathology-platform@{__version__}",
     }
 }
 
@@ -123,7 +131,7 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
         revision = component["revision"]
         source = component["source"]
         spdx_id = _package_id(component_id)
-        purl = f"pkg:github/micro-manager/micro-manager@{revision}"
+        purl = component["purl"]
         spdx_packages.append(
             {
                 "SPDXID": spdx_id,
@@ -153,17 +161,19 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
         relationships.append(
             {"spdxElementId": "SPDXRef-DOCUMENT", "relationshipType": "DESCRIBES", "relatedSpdxElement": spdx_id}
         )
-        cyclonedx_components.append(
-            {
-                "type": "application",
-                "bom-ref": purl,
-                "name": name,
-                "version": version,
-                "purl": purl,
-                "externalReferences": [{"type": "vcs", "url": f"{source}@{revision}"}],
-                "properties": [{"name": "allieos:profiles", "value": ",".join(sorted(role_ids))}],
-            }
-        )
+        cyclonedx_component = {
+            "type": "application",
+            "bom-ref": purl,
+            "name": name,
+            "version": version,
+            "purl": purl,
+            "properties": [{"name": "allieos:profiles", "value": ",".join(sorted(role_ids))}],
+        }
+        if source != "NOASSERTION":
+            cyclonedx_component["externalReferences"] = [
+                {"type": "vcs", "url": f"{source}@{revision}"}
+            ]
+        cyclonedx_components.append(cyclonedx_component)
 
     spdx = {
         "spdxVersion": "SPDX-2.3",

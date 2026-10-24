@@ -14,10 +14,11 @@ dependencies = []
 
 [project.scripts]
 alliectl = "allieos.cli:main"
+allie-pathology = "allieos.pathology.server:main"
 
 [tool.setuptools]
-packages = ["allieos"]
-script-files = ["scripts/install-micromanager.sh"]
+packages = ["allieos", "allieos.pathology"]
+script-files = ["scripts/install-micromanager.sh", "scripts/install-pathology-platform.sh"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

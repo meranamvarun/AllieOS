@@ -2,6 +2,11 @@
 
 ## Project purpose
 
+The shining path is the ISO: core workflows and their reviewed open-source
+dependencies must be present in the image and usable offline after installation,
+not left as a bring-your-own-service exercise. The intended packaging philosophy
+is the "Kali Linux of pathology."
+
 AllieOS is an Ubuntu 24.04 LTS-based pathology and laboratory workstation. Treat the product direction as a complete, prebundled specialist distribution—similar in packaging philosophy to Kali Linux, but for pathology, microscopy, laboratory work, biomedical engineering, and related education and research workflows.
 
 AllieOS is not a medical device and is not validated for diagnosis. Do not claim that bundled software is suitable for regulated clinical use. Never add real patient data to source, tests, examples, logs, or images.
@@ -14,6 +19,7 @@ AllieOS is not a medical device and is not validated for diagnosis. Do not claim
 - `alliectl` lists, inspects, combines, and applies profiles.
 - Micro-Manager 2.0.3 is built from pinned source inside the live-image chroot and is preinstalled in the ISO.
 - Micro-Manager remains an external component of the `pathology-lab` profile so that `alliectl apply pathology-lab` can install it on regular Ubuntu systems.
+- The pathology workflow service and Ubuntu-packaged Orthanc, DICOMweb, GDCM, and WSI support are bundled in the ISO. They remain loopback-only until a deploying institution configures and validates remote access.
 - Release metadata includes SPDX and CycloneDX SBOMs plus SHA-256 checksums.
 
 ## Important paths
@@ -25,7 +31,10 @@ AllieOS is not a medical device and is not validated for diagnosis. Do not claim
 - `allieos/release.py`: SPDX, CycloneDX, and checksum generation.
 - `scripts/build-image.sh`: Ubuntu live ISO recipe. It generates a package list containing every profile package and runs the Micro-Manager build hook.
 - `scripts/install-micromanager.sh`: pinned, idempotent Micro-Manager source installer and desktop integration.
+- `scripts/install-pathology-platform.sh`: local workflow service, desktop launcher, user service, and Orthanc safety configuration.
+- `allieos/pathology/`: patient, case, specimen, slide, report, lookup, and audit workflow.
 - `docs/third-party/micro-manager.md`: provenance, licensing, sandbox decision, update ownership, and removal procedure.
+- `docs/third-party/pathology-platform.md`: Orthanc-stack provenance, licensing, isolation, update ownership, and removal procedure.
 - `tests/`: unit and CLI coverage.
 
 ## Development commands
@@ -65,6 +74,7 @@ The image is written below `build/live/`; release metadata is written below `bui
 - Record third-party provenance, license information, update ownership, sandbox decisions, and removal instructions.
 - Add external components to both SPDX and CycloneDX output.
 - Preserve the Micro-Manager desktop launcher and command-line entry point.
+- Preserve the bundled pathology workflow, its desktop launcher, and the local-only Orthanc archive boundary.
 - Keep hardware-specific microscope and camera drivers separate unless their redistribution terms and hardware support have been reviewed.
 - Update tests and documentation with behavior changes.
 

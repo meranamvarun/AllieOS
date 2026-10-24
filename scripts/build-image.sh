@@ -33,6 +33,7 @@ lb config noauto \
   --bootappend-live "boot=live components username=allie hostname=allieos"
 
 mkdir -p config/package-lists config/includes.chroot/opt/allieos \
+  config/includes.chroot/opt/allieos/docs/third-party \
   config/includes.chroot/usr/local/bin config/includes.chroot/usr/libexec/allieos \
   config/includes.chroot/usr/share/allieos/profiles \
   config/includes.chroot/usr/share/backgrounds/allieos \
@@ -46,9 +47,14 @@ cp "${ROOT_DIR}/config/live/99-allieos-security" config/includes.chroot/etc/apt/
 cp "${ROOT_DIR}/branding/allieos-wallpaper.svg" config/includes.chroot/usr/share/backgrounds/allieos/
 cp "${ROOT_DIR}/branding/plymouth/allieos/"* config/includes.chroot/usr/share/plymouth/themes/allieos/
 rsync -a "${ROOT_DIR}/allieos/" config/includes.chroot/opt/allieos/allieos/
+cp "${ROOT_DIR}/docs/PATHOLOGY_SYSTEM.md" config/includes.chroot/opt/allieos/docs/
+cp "${ROOT_DIR}/docs/third-party/pathology-platform.md" \
+  config/includes.chroot/opt/allieos/docs/third-party/
 cp "${ROOT_DIR}/config/profiles/"*.toml config/includes.chroot/usr/share/allieos/profiles/
 install -m 0755 "${ROOT_DIR}/scripts/install-micromanager.sh" \
   config/includes.chroot/usr/libexec/allieos/install-micromanager.sh
+install -m 0755 "${ROOT_DIR}/scripts/install-pathology-platform.sh" \
+  config/includes.chroot/usr/libexec/allieos/install-pathology-platform.sh
 
 cat > config/includes.chroot/usr/local/bin/alliectl <<'WRAPPER'
 #!/usr/bin/env python3
@@ -84,6 +90,18 @@ test -x /opt/micro-manager/2.0.3-bba80619603c/bin/micromanager
 test -L /usr/local/bin/micromanager
 HOOK
 chmod 0755 config/hooks/live/0200-allieos-micromanager.hook.chroot
+
+cat > config/hooks/live/0300-allieos-pathology-platform.hook.chroot <<'HOOK'
+#!/bin/sh
+set -eu
+/usr/libexec/allieos/install-pathology-platform.sh
+test -x /usr/local/bin/allie-pathology
+test -x /usr/local/bin/allie-pathology-launch
+test -f /usr/lib/systemd/user/allie-pathology.service
+test -f /usr/local/share/applications/org.allieos.Pathology.desktop
+test -f /etc/orthanc/zz-allieos-local.json
+HOOK
+chmod 0755 config/hooks/live/0300-allieos-pathology-platform.hook.chroot
 
 lb build
 

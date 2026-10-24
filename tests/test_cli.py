@@ -56,6 +56,15 @@ class CliTests(unittest.TestCase):
         self.assertIn("allieos-profiles.list.chroot", recipe)
         self.assertIn("org.micro-manager.MicroManager.desktop", installer)
 
+    def test_live_image_preinstalls_pathology_platform(self):
+        recipe = (ROOT / "scripts" / "build-image.sh").read_text(encoding="utf-8")
+        installer = (ROOT / "scripts" / "install-pathology-platform.sh").read_text(encoding="utf-8")
+        self.assertIn("0300-allieos-pathology-platform.hook.chroot", recipe)
+        self.assertIn("/usr/libexec/allieos/install-pathology-platform.sh", recipe)
+        self.assertIn("allie-pathology.service", installer)
+        self.assertIn("org.allieos.Pathology.desktop", installer)
+        self.assertIn("zz-allieos-local.json", installer)
+
     def test_unknown_profile(self):
         code, _, error = self.run_cli("show", "unknown")
         self.assertEqual(code, 2)

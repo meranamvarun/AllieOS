@@ -33,9 +33,13 @@ class ProfileTests(unittest.TestCase):
         second = Profile("b", "B", "B profile", ("git",), ("micro-manager", "other"))
         self.assertEqual(resolve_components([first, second]), ["micro-manager", "other"])
 
-    def test_pathology_profile_includes_micro_manager(self):
+    def test_pathology_profile_includes_complete_platform(self):
         profile = load_profile(ROOT / "config" / "profiles" / "pathology-lab.toml")
         self.assertIn("micro-manager", profile.components)
+        self.assertIn("pathology-platform", profile.components)
+        self.assertTrue(
+            {"orthanc", "orthanc-dicomweb", "orthanc-gdcm", "orthanc-wsi"}.issubset(profile.packages)
+        )
 
     def test_filename_and_id_must_match(self):
         with tempfile.TemporaryDirectory() as directory:
