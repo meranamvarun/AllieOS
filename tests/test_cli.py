@@ -5,6 +5,7 @@ import tempfile
 import unittest
 
 from allieos.cli import main
+from allieos import __codename__, __version__
 
 
 PROFILE_DIR = Path(__file__).resolve().parents[1] / "config" / "profiles"
@@ -23,6 +24,10 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("pathology-lab", output)
         self.assertIn("scientist", output)
+
+    def test_release_identity(self):
+        self.assertEqual(__version__, "0.1.0")
+        self.assertEqual(__codename__, "Rainbow Dress")
 
     def test_packages_lists_every_profile_package_once(self):
         code, output, error = self.run_cli("packages")
@@ -55,6 +60,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("/usr/libexec/allieos/install-micromanager.sh", recipe)
         self.assertIn("allieos-profiles.list.chroot", recipe)
         self.assertIn("org.micro-manager.MicroManager.desktop", installer)
+        self.assertIn("ID=(allieos|ubuntu)", installer)
 
     def test_live_image_preinstalls_pathology_platform(self):
         recipe = (ROOT / "scripts" / "build-image.sh").read_text(encoding="utf-8")
@@ -64,6 +70,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("allie-pathology.service", installer)
         self.assertIn("org.allieos.Pathology.desktop", installer)
         self.assertIn("zz-allieos-local.json", installer)
+        self.assertIn("ID=(allieos|ubuntu)", installer)
 
     def test_unknown_profile(self):
         code, _, error = self.run_cli("show", "unknown")

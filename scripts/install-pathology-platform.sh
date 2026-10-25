@@ -5,8 +5,9 @@ set -euo pipefail
 # The packages themselves are declared in the pathology-lab profile so they are
 # downloaded into the ISO by live-build and remain tracked by the release SBOM.
 
-if [[ "$(uname -s)" != "Linux" ]] || ! grep -q '^ID=ubuntu$' /etc/os-release; then
-  echo "The pathology platform installer requires Ubuntu." >&2
+if [[ "$(uname -s)" != "Linux" ]] || \
+   ! grep -Eq '^ID=(allieos|ubuntu)$' /etc/os-release; then
+  echo "The pathology platform installer requires AllieOS or a compatible base system." >&2
   exit 2
 fi
 if [[ "${EUID}" -ne 0 ]]; then

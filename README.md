@@ -1,5 +1,7 @@
 # AllieOS
 
+The first AllieOS release is **0.1.0 — Rainbow Dress**.
+
 AllieOS is an Ubuntu-based Linux environment for clinicians, pathology and laboratory staff, medical students, scientists, engineers, and biomedical/IT technicians. It combines a conservative Ubuntu 24.04 LTS base with a preinstalled pathology and laboratory toolkit organized through composable professional profiles.
 
 > **Clinical safety:** AllieOS is not a medical device and is not validated for diagnosis. Applications must be independently validated before clinical use. Never use real patient data in development or demonstrations.

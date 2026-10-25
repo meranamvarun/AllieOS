@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ "$(uname -s)" != "Linux" ]] || ! command -v apt-cache >/dev/null; then
-  echo "Package validation requires Ubuntu with apt metadata." >&2
+  echo "Package validation requires an apt-based Linux system with package metadata." >&2
   exit 2
 fi
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

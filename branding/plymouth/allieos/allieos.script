@@ -67,8 +67,8 @@ title_sprite.SetX(Window.GetX() + (screen_width - title_image.GetWidth()) / 2);
 title_sprite.SetY(Window.GetY() + screen_height * 0.73);
 title_sprite.SetZ(10);
 
-subtitle_raw = Image.Text("PATHOLOGY WORKSTATION", 0.51, 0.82, 0.80);
-subtitle_width = screen_height * 0.23;
+subtitle_raw = Image.Text("RAINBOW DRESS - PATHOLOGY WORKSTATION", 0.51, 0.82, 0.80);
+subtitle_width = screen_height * 0.32;
 subtitle_height = subtitle_raw.GetHeight() * subtitle_width / subtitle_raw.GetWidth();
 subtitle_image = subtitle_raw.Scale(subtitle_width, subtitle_height);
 subtitle_sprite = Sprite(subtitle_image);

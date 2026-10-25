@@ -14,6 +14,11 @@ class BrandingTests(unittest.TestCase):
 
         self.assertIn("ModuleName=script", descriptor)
         self.assertIn("Plymouth.SetRefreshFunction", script)
+        self.assertIn("RAINBOW DRESS", script)
+        self.assertIn(
+            "Rainbow Dress",
+            (ROOT / "branding" / "allieos-wallpaper.svg").read_text(encoding="utf-8"),
+        )
         for asset in ("field", "cell", "nucleus", "focus-ring", "scan-line"):
             source = THEME / f"{asset}.svg"
             self.assertTrue(source.is_file())
@@ -31,6 +36,23 @@ class BrandingTests(unittest.TestCase):
         self.assertIn('branding/plymouth/allieos/', build_script)
         self.assertIn("rsvg-convert", build_script)
         self.assertIn("update-initramfs -u", build_script)
+
+    def test_live_image_identifies_itself_as_allieos_rainbow_dress(self):
+        build_script = (ROOT / "scripts" / "build-image.sh").read_text(encoding="utf-8")
+
+        self.assertIn('PRETTY_NAME="AllieOS 0.1.0 (Rainbow Dress)"', build_script)
+        self.assertIn('VERSION_CODENAME=rainbow-dress', build_script)
+        self.assertIn('ID=allieos', build_script)
+        self.assertIn('DISTRIB_ID=AllieOS', build_script)
+        self.assertIn('DISTRIB_CODENAME=rainbow-dress', build_script)
+        self.assertIn("/etc/issue.net", build_script)
+        self.assertIn("/etc/update-motd.d/00-allieos", build_script)
+        self.assertIn('GRUB_DISTRIBUTOR="AllieOS"', build_script)
+        self.assertNotIn("PRETTY_NAME=Ubuntu", build_script)
+        os_release = build_script.split("cat > /etc/os-release <<'RELEASE'", 1)[1].split(
+            "\nRELEASE", 1
+        )[0]
+        self.assertNotIn("ubuntu", os_release.lower())
 
 
 if __name__ == "__main__":
