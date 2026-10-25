@@ -5,7 +5,13 @@ import tempfile
 import unittest
 
 from allieos.profiles import Profile, discover_profiles
-from allieos.release import ReleaseError, build_sboms, write_release_metadata
+from allieos.release import (
+    PackageMetadata,
+    ReleaseError,
+    build_sboms,
+    read_dpkg_status,
+    write_release_metadata,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,6 +85,49 @@ class ReleaseTests(unittest.TestCase):
             self.assertIn("allieos.spdx.json", entries)
             self.assertIn("allieos.cdx.json", entries)
             json.loads((root / "release" / "allieos.spdx.json").read_text())
+
+    def test_dpkg_status_enriches_package_versions_and_architectures(self):
+        profiles = [Profile("lab", "Lab", "Lab profile", ("dcmtk",))]
+        inventory = {"dcmtk": PackageMetadata("3.6.7-9ubuntu2", "amd64")}
+        spdx, cyclonedx = build_sboms(profiles, 0, inventory)
+
+        self.assertEqual(spdx["packages"][0]["versionInfo"], "3.6.7-9ubuntu2")
+        self.assertIn("@3.6.7-9ubuntu2?arch=amd64", spdx["packages"][0]["externalRefs"][0]["referenceLocator"])
+        self.assertEqual(cyclonedx["components"][0]["version"], "3.6.7-9ubuntu2")
+        self.assertIn(
+            {"name": "allieos:architecture", "value": "amd64"},
+            cyclonedx["components"][0]["properties"],
+        )
+
+    def test_dpkg_status_parser_only_returns_installed_packages(self):
+        status = """Package: dcmtk
+Status: install ok installed
+Architecture: amd64
+Version: 3.6.7-9ubuntu2
+Description: DICOM toolkit
+ continued description
+
+Package: removed-package
+Status: deinstall ok config-files
+Architecture: amd64
+Version: 1.0
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "status"
+            path.write_text(status, encoding="utf-8")
+            self.assertEqual(
+                read_dpkg_status(path),
+                {"dcmtk": PackageMetadata("3.6.7-9ubuntu2", "amd64")},
+            )
+
+    def test_inventory_must_contain_every_declared_package(self):
+        profiles = [Profile("lab", "Lab", "Lab profile", ("dcmtk", "orthanc"))]
+        with self.assertRaisesRegex(ReleaseError, "orthanc"):
+            build_sboms(
+                profiles,
+                0,
+                {"dcmtk": PackageMetadata("3.6.7-9ubuntu2", "amd64")},
+            )
 
     def test_missing_artifact_is_rejected_before_writing(self):
         with tempfile.TemporaryDirectory() as directory:

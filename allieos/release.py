@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
+from urllib.parse import quote
 import uuid
 
 from . import __codename__, __version__
@@ -18,6 +20,14 @@ from .profiles import Profile
 
 class ReleaseError(ValueError):
     """Raised when release metadata cannot be generated safely."""
+
+
+@dataclass(frozen=True)
+class PackageMetadata:
+    """Version and architecture reported by dpkg for an installed package."""
+
+    version: str
+    architecture: str
 
 
 EXTERNAL_COMPONENTS = {
@@ -57,10 +67,70 @@ def _inventory(profiles: Iterable[Profile]) -> dict[str, list[str]]:
     return {name: sorted(ids) for name, ids in sorted(membership.items())}
 
 
-def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = None) -> tuple[dict, dict]:
+def read_dpkg_status(path: Path) -> dict[str, PackageMetadata]:
+    """Read installed package versions from a dpkg status database."""
+    try:
+        contents = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ReleaseError(f"cannot read dpkg status file {path}: {error}") from error
+
+    packages: dict[str, PackageMetadata] = {}
+    for paragraph_number, paragraph in enumerate(re.split(r"\n\s*\n", contents.strip()), 1):
+        if not paragraph.strip():
+            continue
+        fields: dict[str, str] = {}
+        current_field: str | None = None
+        for line in paragraph.splitlines():
+            if line.startswith((" ", "\t")):
+                if current_field is None:
+                    raise ReleaseError(
+                        f"invalid continuation in dpkg status paragraph {paragraph_number}"
+                    )
+                fields[current_field] += "\n" + line[1:]
+                continue
+            if ":" not in line:
+                raise ReleaseError(f"invalid dpkg status line in paragraph {paragraph_number}: {line}")
+            current_field, value = line.split(":", 1)
+            fields[current_field] = value.strip()
+
+        if fields.get("Status") != "install ok installed":
+            continue
+        missing = [field for field in ("Package", "Version", "Architecture") if not fields.get(field)]
+        if missing:
+            raise ReleaseError(
+                f"installed package in dpkg status paragraph {paragraph_number} is missing: "
+                + ", ".join(missing)
+            )
+        name = fields["Package"]
+        metadata = PackageMetadata(fields["Version"], fields["Architecture"])
+        if name in packages and packages[name] != metadata:
+            raise ReleaseError(f"dpkg status contains conflicting installed records for: {name}")
+        packages[name] = metadata
+    return dict(sorted(packages.items()))
+
+
+def _package_purl(name: str, metadata: PackageMetadata | None) -> str:
+    purl = f"pkg:deb/ubuntu/{quote(name, safe='')}"
+    if metadata is not None:
+        purl += f"@{quote(metadata.version, safe='')}?arch={quote(metadata.architecture, safe='')}"
+    return purl
+
+
+def build_sboms(
+    profiles: Iterable[Profile],
+    source_date_epoch: int | None = None,
+    package_inventory: Mapping[str, PackageMetadata] | None = None,
+) -> tuple[dict, dict]:
     """Build SPDX 2.3 and CycloneDX 1.5 documents from role manifests."""
     profiles = list(profiles)
     inventory = _inventory(profiles)
+    if package_inventory is not None:
+        missing_packages = sorted(set(inventory) - set(package_inventory))
+        if missing_packages:
+            raise ReleaseError(
+                "declared profile packages are missing from the installed-package inventory: "
+                + ", ".join(missing_packages)
+            )
     component_membership: dict[str, list[str]] = defaultdict(list)
     for profile in profiles:
         for component in profile.components:
@@ -82,9 +152,9 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
     cyclonedx_components = []
     for name, role_ids in inventory.items():
         spdx_id = _package_id(name)
-        purl = f"pkg:deb/ubuntu/{name}"
-        spdx_packages.append(
-            {
+        metadata = package_inventory.get(name) if package_inventory is not None else None
+        purl = _package_purl(name, metadata)
+        spdx_package = {
                 "SPDXID": spdx_id,
                 "name": name,
                 "downloadLocation": "NOASSERTION",
@@ -107,19 +177,34 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
                     }
                 ],
             }
-        )
+        if metadata is not None:
+            spdx_package["versionInfo"] = metadata.version
+            spdx_package["primaryPackagePurpose"] = "APPLICATION"
+            spdx_package["annotations"].append(
+                {
+                    "annotationDate": created,
+                    "annotationType": "OTHER",
+                    "annotator": "Tool: alliectl",
+                    "comment": f"Installed architecture: {metadata.architecture}",
+                }
+            )
+        spdx_packages.append(spdx_package)
         relationships.append(
             {"spdxElementId": "SPDXRef-DOCUMENT", "relationshipType": "DESCRIBES", "relatedSpdxElement": spdx_id}
         )
-        cyclonedx_components.append(
-            {
+        cyclonedx_component = {
                 "type": "application",
                 "bom-ref": purl,
                 "name": name,
                 "purl": purl,
                 "properties": [{"name": "allieos:profiles", "value": ",".join(role_ids)}],
             }
-        )
+        if metadata is not None:
+            cyclonedx_component["version"] = metadata.version
+            cyclonedx_component["properties"].append(
+                {"name": "allieos:architecture", "value": metadata.architecture}
+            )
+        cyclonedx_components.append(cyclonedx_component)
 
     for component_id, role_ids in sorted(component_membership.items()):
         try:
@@ -214,7 +299,11 @@ def _sha256(path: Path) -> str:
 
 
 def write_release_metadata(
-    profiles: Iterable[Profile], output_dir: Path, artifacts: Sequence[Path] = (), source_date_epoch: int | None = None
+    profiles: Iterable[Profile],
+    output_dir: Path,
+    artifacts: Sequence[Path] = (),
+    source_date_epoch: int | None = None,
+    package_inventory: Mapping[str, PackageMetadata] | None = None,
 ) -> list[Path]:
     """Write both SBOM formats and a checksum manifest, returning created paths."""
     checked_artifacts = [path.resolve() for path in artifacts]
@@ -233,7 +322,7 @@ def write_release_metadata(
     spdx_path = output_dir / "allieos.spdx.json"
     cyclonedx_path = output_dir / "allieos.cdx.json"
     checksum_path = output_dir / "SHA256SUMS"
-    spdx, cyclonedx = build_sboms(profiles, source_date_epoch)
+    spdx, cyclonedx = build_sboms(profiles, source_date_epoch, package_inventory)
     spdx_path.write_text(json.dumps(spdx, indent=2) + "\n", encoding="utf-8")
     cyclonedx_path.write_text(json.dumps(cyclonedx, indent=2) + "\n", encoding="utf-8")
 

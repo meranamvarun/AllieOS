@@ -20,7 +20,7 @@ from .profiles import (
     resolve_components,
     resolve_packages,
 )
-from .release import ReleaseError, write_release_metadata
+from .release import ReleaseError, read_dpkg_status, write_release_metadata
 
 
 STATE_FILE = Path("/var/lib/allieos/state.json")
@@ -49,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--output-dir", type=Path, default=Path("release"))
     release.add_argument("--artifact", action="append", type=Path, default=[], help="artifact to include in SHA256SUMS")
     release.add_argument("--source-date-epoch", type=int, help="fixed timestamp for reproducible output")
+    release.add_argument(
+        "--dpkg-status",
+        type=Path,
+        help="dpkg status file from the completed image; adds installed versions and architectures",
+    )
     return parser
 
 
@@ -144,8 +149,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.dry_run,
             )
         if args.command == "release-metadata":
+            package_inventory = read_dpkg_status(args.dpkg_status) if args.dpkg_status else None
             paths = write_release_metadata(
-                profiles.values(), args.output_dir, args.artifact, args.source_date_epoch
+                profiles.values(),
+                args.output_dir,
+                args.artifact,
+                args.source_date_epoch,
+                package_inventory,
             )
             for path in paths:
                 print(path)

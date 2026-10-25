@@ -53,7 +53,10 @@ sudo bash ./scripts/build-image.sh
 ```
 
 The image is written below `build/live/`. Boot it in a VM before trying hardware. Secure Boot signing and a graphical installer are planned but not implemented.
-The build also writes `build/release/allieos.spdx.json`, `allieos.cdx.json`, and `SHA256SUMS`.
+The build also writes `build/release/allieos.spdx.json`, `allieos.cdx.json`, and
+`SHA256SUMS`. The image build reads its completed `dpkg` database so both SBOMs
+record the installed version and architecture of every declared profile package;
+metadata generation fails if any declared package is absent.
 
 To generate the metadata separately, optionally including an existing image:
 
@@ -62,7 +65,10 @@ SOURCE_DATE_EPOCH=0 python3 -m allieos.cli release-metadata \
   --output-dir build/release --artifact build/live/allieos.iso
 ```
 
-The SBOMs describe packages requested by AllieOS role manifests and the profiles that requested them. They do not replace an installed-package inventory or vulnerability scan of the completed image.
+Without `--dpkg-status`, the SBOMs describe unversioned packages requested by
+AllieOS role manifests. Pass a completed image's `var/lib/dpkg/status` file to
+`--dpkg-status` to produce the versioned release form. The SBOMs identify profile
+packages and do not replace a vulnerability scan of the completed image.
 
 ## Develop
 

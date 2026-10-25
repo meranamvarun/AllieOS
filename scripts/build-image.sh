@@ -137,13 +137,20 @@ chmod 0755 config/hooks/live/0300-allieos-pathology-platform.hook.chroot
 
 lb build
 
+DPKG_STATUS="${BUILD_DIR}/chroot/var/lib/dpkg/status"
+if [[ ! -f "${DPKG_STATUS}" ]]; then
+  echo "Image build completed but the installed-package database was not found at ${DPKG_STATUS}." >&2
+  exit 2
+fi
+
 mapfile -t IMAGE_ARTIFACTS < <(find "${BUILD_DIR}" -maxdepth 1 -type f \( -name '*.iso' -o -name '*.img' \) -print | sort)
 if [[ "${#IMAGE_ARTIFACTS[@]}" -eq 0 ]]; then
   echo "Image build completed but no ISO or IMG artifact was found." >&2
   exit 2
 fi
 
-METADATA_ARGS=(--profile-dir "${ROOT_DIR}/config/profiles" release-metadata --output-dir "${ROOT_DIR}/build/release")
+METADATA_ARGS=(--profile-dir "${ROOT_DIR}/config/profiles" release-metadata \
+  --output-dir "${ROOT_DIR}/build/release" --dpkg-status "${DPKG_STATUS}")
 for artifact in "${IMAGE_ARTIFACTS[@]}"; do
   METADATA_ARGS+=(--artifact "${artifact}")
 done
