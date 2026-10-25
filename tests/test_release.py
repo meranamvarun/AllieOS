@@ -41,6 +41,21 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(next(item for item in spdx["packages"] if item["name"] == name)["versionInfo"], "0.1.0")
         self.assertEqual(next(item for item in cyclonedx["components"] if item["name"] == name)["purl"], "pkg:generic/allieos-pathology-platform@0.1.0")
 
+    def test_operating_system_release_name_and_codename_are_recorded(self):
+        spdx, cyclonedx = build_sboms(self.profiles, source_date_epoch=0)
+        operating_system = cyclonedx["metadata"]["component"]
+
+        self.assertEqual(operating_system["name"], "AllieOS")
+        self.assertEqual(operating_system["version"], "0.1.0")
+        self.assertEqual(
+            spdx["name"],
+            "AllieOS-0.1.0-Rainbow-Dress-profile-components",
+        )
+        self.assertEqual(
+            operating_system["properties"],
+            [{"name": "allieos:codename", "value": "Rainbow Dress"}],
+        )
+
     def test_shared_package_records_profile_membership(self):
         profiles = [
             Profile("lab", "Lab", "Lab profile", ("dcmtk",)),

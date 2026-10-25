@@ -12,7 +12,7 @@ import re
 from typing import Iterable, Sequence
 import uuid
 
-from . import __version__
+from . import __codename__, __version__
 from .profiles import Profile
 
 
@@ -179,7 +179,7 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
         "spdxVersion": "SPDX-2.3",
         "dataLicense": "CC0-1.0",
         "SPDXID": "SPDXRef-DOCUMENT",
-        "name": f"AllieOS-{__version__}-profile-components",
+        "name": f"AllieOS-{__version__}-{__codename__.replace(' ', '-')}-profile-components",
         "documentNamespace": f"https://allieos.invalid/spdx/{document_uuid}",
         "creationInfo": {"created": created, "creators": [f"Tool: alliectl-{__version__}"]},
         "packages": spdx_packages,
@@ -193,7 +193,12 @@ def build_sboms(profiles: Iterable[Profile], source_date_epoch: int | None = Non
         "metadata": {
             "timestamp": created,
             "tools": {"components": [{"type": "application", "name": "alliectl", "version": __version__}]},
-            "component": {"type": "operating-system", "name": "AllieOS", "version": __version__},
+            "component": {
+                "type": "operating-system",
+                "name": "AllieOS",
+                "version": __version__,
+                "properties": [{"name": "allieos:codename", "value": __codename__}],
+            },
         },
         "components": cyclonedx_components,
     }

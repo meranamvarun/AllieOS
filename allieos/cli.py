@@ -12,7 +12,7 @@ import subprocess
 import sys
 from typing import Sequence
 
-from . import __version__
+from . import __codename__, __version__
 from .profiles import (
     ProfileError,
     default_profile_dir,
@@ -33,7 +33,9 @@ COMPONENT_INSTALLERS = {
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="alliectl", description="Manage AllieOS role profiles")
     parser.add_argument("--profile-dir", type=Path, default=default_profile_dir())
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__} ({__codename__})"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("list", help="list available profiles")
     show = subparsers.add_parser("show", help="show a profile and its packages")
@@ -95,10 +97,15 @@ def _apply(
             print(f"bash {_component_installer(component)}")
         return 0
     if platform.system() != "Linux" or not Path("/etc/os-release").exists():
-        raise ProfileError("profiles can only be applied on an Ubuntu system")
+        raise ProfileError("profiles can only be applied on AllieOS or a compatible Linux system")
     os_release = Path("/etc/os-release").read_text(encoding="utf-8")
-    if "ID=ubuntu" not in os_release.splitlines():
-        raise ProfileError("profiles can only be applied on Ubuntu")
+    release_fields = dict(
+        line.split("=", 1) for line in os_release.splitlines() if "=" in line
+    )
+    system_id = release_fields.get("ID", "").strip('"')
+    compatible_ids = release_fields.get("ID_LIKE", "").strip('"').split()
+    if system_id not in {"allieos", "ubuntu"} and "ubuntu" not in compatible_ids:
+        raise ProfileError("profiles require AllieOS or an Ubuntu-compatible base")
     if os.geteuid() != 0:
         raise ProfileError("apply must be run as root (try: sudo alliectl apply ...)")
     subprocess.run(["apt-get", "update"], check=True)

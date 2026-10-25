@@ -27,8 +27,9 @@ DESKTOP
   chmod 0644 /usr/local/share/applications/org.micro-manager.MicroManager.desktop
 }
 
-if [[ "$(uname -s)" != "Linux" ]] || ! grep -q '^ID=ubuntu$' /etc/os-release; then
-  echo "Micro-Manager installation requires Ubuntu." >&2
+if [[ "$(uname -s)" != "Linux" ]] || \
+   ! grep -Eq '^ID=(allieos|ubuntu)$' /etc/os-release; then
+  echo "Micro-Manager installation requires AllieOS or a compatible base system." >&2
   exit 2
 fi
 if [[ "${EUID}" -ne 0 ]]; then

@@ -5,5 +5,6 @@
     <path d="M-130 0h260M0-130v260"/><circle r="205" opacity=".16" stroke-width="10"/>
   </g>
   <text x="960" y="790" fill="#e6fcf5" font-family="sans-serif" font-size="88" text-anchor="middle">AllieOS</text>
-  <text x="960" y="860" fill="#99e9f2" font-family="sans-serif" font-size="30" text-anchor="middle">Open tools for care, science, and engineering</text>
+  <text x="960" y="850" fill="#99e9f2" font-family="sans-serif" font-size="34" text-anchor="middle">Rainbow Dress</text>
+  <text x="960" y="900" fill="#99e9f2" font-family="sans-serif" font-size="26" text-anchor="middle">Open tools for care, science, and engineering</text>
 </svg>

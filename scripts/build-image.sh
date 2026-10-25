@@ -26,8 +26,8 @@ lb config noauto \
   --archive-areas "main restricted universe multiverse" \
   --binary-images iso-hybrid \
   --debian-installer none \
-  --image-name allieos-0.1.0-amd64 \
-  --iso-application "AllieOS Live" \
+  --image-name allieos-rainbow-dress-0.1.0-amd64 \
+  --iso-application "AllieOS 0.1.0 Rainbow Dress" \
   --iso-publisher "AllieOS contributors" \
   --iso-volume "ALLIEOS_0_1" \
   --bootappend-live "boot=live components username=allie hostname=allieos"
@@ -69,7 +69,39 @@ mkdir -p config/hooks/live
 cat > config/hooks/live/0100-allieos-branding.hook.chroot <<'HOOK'
 #!/bin/sh
 set -eu
-printf '\nVARIANT="AllieOS"\nVARIANT_ID=allieos\n' >> /etc/os-release
+cat > /etc/os-release <<'RELEASE'
+PRETTY_NAME="AllieOS 0.1.0 (Rainbow Dress)"
+NAME="AllieOS"
+VERSION_ID="0.1.0"
+VERSION="0.1.0 (Rainbow Dress)"
+VERSION_CODENAME=rainbow-dress
+ID=allieos
+ID_LIKE=debian
+RELEASE
+cat > /etc/lsb-release <<'RELEASE'
+DISTRIB_ID=AllieOS
+DISTRIB_RELEASE=0.1.0
+DISTRIB_CODENAME=rainbow-dress
+DISTRIB_DESCRIPTION="AllieOS 0.1.0 (Rainbow Dress)"
+RELEASE
+printf 'AllieOS 0.1.0 (Rainbow Dress) \\n \\l\n' > /etc/issue
+printf 'AllieOS 0.1.0 (Rainbow Dress)\n' > /etc/issue.net
+printf 'Welcome to AllieOS 0.1.0 (Rainbow Dress)\n' > /etc/motd
+
+# Dynamic base-system MOTD fragments can reintroduce upstream product branding.
+if [ -d /etc/update-motd.d ]; then
+  find /etc/update-motd.d -type f -exec chmod -x {} +
+  cat > /etc/update-motd.d/00-allieos <<'MOTD'
+#!/bin/sh
+printf 'Welcome to AllieOS 0.1.0 (Rainbow Dress)\n\n'
+MOTD
+  chmod 0755 /etc/update-motd.d/00-allieos
+fi
+
+mkdir -p /etc/default/grub.d
+cat > /etc/default/grub.d/99-allieos.cfg <<'GRUB'
+GRUB_DISTRIBUTOR="AllieOS"
+GRUB
 update-alternatives --install /usr/share/backgrounds/warty-final-ubuntu.png desktop-background /usr/share/backgrounds/allieos/allieos-wallpaper.svg 50 || true
 
 THEME_DIR=/usr/share/plymouth/themes/allieos
